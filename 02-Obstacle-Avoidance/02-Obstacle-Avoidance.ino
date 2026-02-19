@@ -1,38 +1,70 @@
-const int trig = 2; // Sensor pins defined
-const int echo = 3;
+const int trigPin = 2; // Sensor trigger pin
+const int echoPin = 3; // Sensor echo pin
 
-const int left_e = 5; 
-const int left_f = 6; // Motor driver pins defined
-const int left_b = 7;
-const int right_e = 10;
-const int right_f = 11;
-const int right_b = 4;
+// Motor driver pins
+const int left_en = 5; 
+const int left_fwd = 6; 
+const int left_back = 7;
+const int right_en = 10;
+const int right_fwd = 11;
+const int right_back = 4;
 
-long duration = 0; // Variables for distance calculation
+long duration = 0;
 int distance = 0;
 int motor_speed = 170;
 
 void setup() {
   Serial.begin(9600);
-  pinMode(trig, OUTPUT); // Trigger pin set as output
-  pinMode(echo, INPUT);  // Echo pin set as input
-  // ... (pinMode outputs for motors)
+
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+
+  pinMode(left_fwd, OUTPUT);
+  pinMode(left_back, OUTPUT);
+  pinMode(right_fwd, OUTPUT);
+  pinMode(right_back, OUTPUT);
+  pinMode(right_en, OUTPUT);
+  pinMode(left_en, OUTPUT);
 }
 
 void loop() {
-  // Distance calculated using HC-SR04
-  digitalWrite(trig, LOW);
+  // Ultrasonic distance measurement using HC-SR04
+  digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
-  digitalWrite(trig, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trig, LOW);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);   
+  digitalWrite(trigPin, LOW); 
 
-  duration = pulseIn(echo, HIGH);
-  distance = (duration / 2) / 29.1;
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration / 2) / 28.5;
 
-  if (distance < 30) { // If distance is less than 30cm, move back and turn
-    // ... (avoidance logic)
-  } else { // If path is clear, move forward
-    // ... (forward logic)
+  Serial.println(distance);
+
+  if (distance < 30) { // If obstacle is closer than 30cm, move back and turn
+    // Move Backward
+    digitalWrite(left_fwd, LOW);
+    digitalWrite(left_back, HIGH);
+    digitalWrite(right_fwd, LOW);
+    digitalWrite(right_back, HIGH);
+    analogWrite(right_en, motor_speed);
+    analogWrite(left_en, motor_speed);
+    delay(150);
+
+    // Turn Left (Spin)
+    digitalWrite(left_fwd, LOW);
+    digitalWrite(left_back, HIGH);
+    digitalWrite(right_fwd, HIGH);
+    digitalWrite(right_back, LOW);
+    analogWrite(right_en, motor_speed);
+    analogWrite(left_en, motor_speed);
+    delay(250);
+  } 
+  else { // Path is clear, move forward
+    digitalWrite(left_fwd, HIGH);
+    digitalWrite(left_back, LOW);
+    digitalWrite(right_fwd, HIGH);
+    digitalWrite(right_back, LOW);
+    analogWrite(right_en, motor_speed);
+    analogWrite(left_en, motor_speed);
   }
 }
